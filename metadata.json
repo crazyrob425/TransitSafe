@@ -1,0 +1,8 @@
+{
+  "name": "TransitSafe Liability Shield",
+  "description": "Collect important information and generate digital incident reports after an accident.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
