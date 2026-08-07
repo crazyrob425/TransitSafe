@@ -14,12 +14,15 @@ object BarcodeGenerator {
         return try {
             val writer = MultiFormatWriter()
             val bitMatrix: BitMatrix = writer.encode(content, format, width, height)
-            val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            for (x in 0 until width) {
-                for (y in 0 until height) {
-                    bmp.setPixel(x, y, if (bitMatrix.get(x, y)) Color.BLACK else Color.WHITE)
+            val pixels = IntArray(width * height)
+            for (y in 0 until height) {
+                val offset = y * width
+                for (x in 0 until width) {
+                    pixels[offset + x] = if (bitMatrix.get(x, y)) Color.BLACK else Color.WHITE
                 }
             }
+            val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            bmp.setPixels(pixels, 0, width, 0, 0, width, height)
             bmp.asImageBitmap()
         } catch (e: Exception) {
             e.printStackTrace()
