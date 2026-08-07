@@ -134,19 +134,12 @@ fun DashboardScreen(onStartIncident: () -> Unit, onShowInsuranceCard: () -> Unit
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = Icons.Default.Security,
-            contentDescription = "Security",
-            modifier = Modifier.size(80.dp),
-            tint = MaterialTheme.colorScheme.primary
+        Image(
+            painter = androidx.compose.ui.res.painterResource(id = R.drawable.logo),
+            contentDescription = "TransitSafe Liability Shield Logo",
+            modifier = Modifier.size(240.dp)
         )
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = "TransitSafe Liability Shield",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold
-        )
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Premium Liability Coverage",
             style = MaterialTheme.typography.labelMedium,
