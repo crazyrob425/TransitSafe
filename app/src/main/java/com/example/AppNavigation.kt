@@ -38,6 +38,17 @@ import java.io.ByteArrayOutputStream
 import androidx.camera.core.ImageCapture
 import androidx.core.content.ContextCompat
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+
 @Composable
 fun AppNavigation() {
     val context = LocalContext.current
@@ -57,7 +68,22 @@ fun AppNavigation() {
         return Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
     }
 
-    NavHost(navController = navController, startDestination = "main") {
+    NavHost(
+        navController = navController, 
+        startDestination = "main",
+        enterTransition = {
+            fadeIn(animationSpec = tween(400)) + slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(400))
+        },
+        exitTransition = {
+            fadeOut(animationSpec = tween(400)) + slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(400))
+        },
+        popEnterTransition = {
+            fadeIn(animationSpec = tween(400)) + slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(400))
+        },
+        popExitTransition = {
+            fadeOut(animationSpec = tween(400)) + slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(400))
+        }
+    ) {
         composable("main") {
             MainScreen(
                 onStartIncident = {
@@ -126,14 +152,27 @@ fun AppNavigation() {
 
 @Composable
 fun DashboardScreen(onStartIncident: () -> Unit, onShowInsuranceCard: () -> Unit = {}) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    val haptic = LocalHapticFeedback.current
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        visible = true
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(animationSpec = tween(800)) + slideInVertically(
+            initialOffsetY = { 100 },
+            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+        )
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
         Image(
             painter = androidx.compose.ui.res.painterResource(id = R.drawable.logo),
             contentDescription = "TransitSafe Liability Shield Logo",
@@ -155,7 +194,10 @@ fun DashboardScreen(onStartIncident: () -> Unit, onShowInsuranceCard: () -> Unit
         )
         Spacer(modifier = Modifier.height(48.dp))
         Button(
-            onClick = onStartIncident,
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onStartIncident()
+            },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -164,11 +206,15 @@ fun DashboardScreen(onStartIncident: () -> Unit, onShowInsuranceCard: () -> Unit
         }
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedButton(
-            onClick = onShowInsuranceCard,
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onShowInsuranceCard()
+            },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(28.dp)
         ) {
             Text("View Digital ID Card", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
+    }
     }
 }

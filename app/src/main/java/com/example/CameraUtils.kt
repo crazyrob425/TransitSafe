@@ -41,6 +41,9 @@ import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+import androidx.compose.animation.core.*
+import androidx.compose.runtime.getValue
+
 @Composable
 fun CameraPreview(
     modifier: Modifier = Modifier,
@@ -69,6 +72,16 @@ fun CameraPreview(
             Log.e("CameraPreview", "Use case binding failed", e)
         }
     }
+
+    val infiniteTransition = rememberInfiniteTransition()
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
 
     Box(modifier = modifier) {
         AndroidView(
@@ -100,7 +113,7 @@ fun CameraPreview(
             // Neon green corner guides
             val cornerLength = 24.dp.toPx()
             val strokeWidth = 4.dp.toPx()
-            val greenColor = Color(0xFF00FF00)
+            val greenColor = Color(0xFF00FF00).copy(alpha = pulseAlpha)
 
             // Top Left
             drawLine(greenColor, Offset(left - strokeWidth/2, top), Offset(left + cornerLength, top), strokeWidth)

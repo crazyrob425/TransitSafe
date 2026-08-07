@@ -1,6 +1,7 @@
 package com.example
 
 import android.content.Context
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -9,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -23,6 +25,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.google.zxing.BarcodeFormat
+import java.text.SimpleDateFormat
+import java.util.*
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 
 @Composable
 fun InsuranceCardScreen() {
@@ -38,6 +45,18 @@ fun InsuranceCardScreen() {
         "$firstName $lastName".trim().uppercase()
     } else {
         "PRO MEMBER"
+    }
+
+    val signupDate = "08/01/2026"
+    val expirationDate = "08/01/2027"
+    val memberCode = "PRM-8492-3301-X"
+
+    val barcodeData = "TransitSafe|$fullName|$address|$signupDate|$expirationDate|$memberCode"
+    val qrBitmap = remember(barcodeData) {
+        BarcodeGenerator.generateBarcode(barcodeData, BarcodeFormat.QR_CODE, 200, 200)
+    }
+    val pdf417Bitmap = remember(barcodeData) {
+        BarcodeGenerator.generateBarcode(barcodeData, BarcodeFormat.PDF_417, 300, 80)
     }
 
     Column(
@@ -58,7 +77,7 @@ fun InsuranceCardScreen() {
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(20.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
@@ -70,7 +89,7 @@ fun InsuranceCardScreen() {
                 ) {
                     Column {
                         Text(
-                            text = "INCIDENT SECURE",
+                            text = "TransitSafe",
                             color = MaterialTheme.colorScheme.onPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
@@ -84,13 +103,15 @@ fun InsuranceCardScreen() {
                             letterSpacing = 0.5.sp
                         )
                     }
-                    Icon(
-                        imageVector = Icons.Default.Security,
-                        contentDescription = "Security",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(32.dp)
+                    Image(
+                        painter = androidx.compose.ui.res.painterResource(id = R.drawable.logo),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(32.dp),
+                        colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
                     )
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Middle section: Policy Info
                 Column {
@@ -101,28 +122,13 @@ fun InsuranceCardScreen() {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "PRM-8492-3301-X",
+                        text = memberCode,
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         letterSpacing = 2.sp
                     )
                     
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    Text(
-                        text = "COVERAGE TYPE",
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "RIDE-SHARE COMPREHENSIVE LIABILITY (PRO)",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     Row(
@@ -137,7 +143,7 @@ fun InsuranceCardScreen() {
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "01/01/2026",
+                                text = signupDate,
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
@@ -151,7 +157,7 @@ fun InsuranceCardScreen() {
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "12/31/2027",
+                                text = expirationDate,
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
@@ -160,8 +166,20 @@ fun InsuranceCardScreen() {
                     }
                 }
 
-                // Bottom section: Member Name
                 Spacer(modifier = Modifier.height(16.dp))
+
+                if (pdf417Bitmap != null) {
+                    Image(
+                        bitmap = pdf417Bitmap,
+                        contentDescription = "PDF417 Barcode",
+                        modifier = Modifier.fillMaxWidth().height(60.dp),
+                        contentScale = ContentScale.FillBounds
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Bottom section: Member Name & QR
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -183,7 +201,7 @@ fun InsuranceCardScreen() {
                             )
                         }
                         
-                        Column {
+                        Column(modifier = Modifier.weight(1f, fill = false)) {
                             Text(
                                 text = "INSURED DRIVER",
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
@@ -207,22 +225,16 @@ fun InsuranceCardScreen() {
                                     maxLines = 2
                                 )
                             }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Lloyd's Specialized Micro-Mobility Fund",
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Normal
-                            )
                         }
                     }
                     
-                    Icon(
-                        imageVector = Icons.Default.QrCode,
-                        contentDescription = "QR Code",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(36.dp)
-                    )
+                    if (qrBitmap != null) {
+                        Image(
+                            bitmap = qrBitmap,
+                            contentDescription = "QR Code",
+                            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(4.dp))
+                        )
+                    }
                 }
             }
         }
@@ -236,5 +248,28 @@ fun InsuranceCardScreen() {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                IdCardGenerator.generateAndShare(
+                    context = context,
+                    fullName = fullName,
+                    address = address,
+                    qrBitmap = qrBitmap?.asAndroidBitmap(),
+                    pdf417Bitmap = pdf417Bitmap?.asAndroidBitmap(),
+                    signupDate = signupDate,
+                    expirationDate = expirationDate,
+                    memberCode = memberCode
+                )
+            },
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+        ) {
+            Icon(Icons.Default.Share, contentDescription = "Share", modifier = Modifier.padding(end = 8.dp))
+            Text("Share Virtual ID Card", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        }
     }
 }
